@@ -5,13 +5,11 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/ritego/build-a-router-with-go/router"
 	"github.com/spf13/viper"
 )
 
-var (
-	router *mux.Router
-)
+var rr = router.New()
 
 func main() {
 	initConfig()
@@ -33,10 +31,19 @@ func initConfig() {
 }
 
 func setupRouter() {
-	router = mux.NewRouter()
-	router.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
-		rw.Write([]byte("Hello World!"))
-	}).Methods("GET")
+
+	rr.HandleFunc("GET:/", func(rw http.ResponseWriter, r *http.Request) {
+		rw.Write([]byte("Root - Hello World!"))
+	})
+
+	rr.HandleFunc("GET:/path-one", func(rw http.ResponseWriter, r *http.Request) {
+		rw.Write([]byte("Path One - Hello World!"))
+	})
+
+	rr.HandleFunc("GET:/path-one/path-two", func(rw http.ResponseWriter, r *http.Request) {
+		rw.Write([]byte("Path Two - Hello World!"))
+	})
+
 	log.Println("Router Loaded")
 }
 
@@ -44,7 +51,7 @@ func startServer() {
 	addr := viper.GetString("SERVER_PORT")
 
 	srv := &http.Server{
-		Handler:      router,
+		Handler:      rr,
 		Addr:         addr,
 		WriteTimeout: viper.GetDuration("SERVER_WRITE_TIMEOUT"),
 		ReadTimeout:  viper.GetDuration("SERVER_READ_TIMEOUT"),
